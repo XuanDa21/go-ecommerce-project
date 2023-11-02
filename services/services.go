@@ -34,7 +34,9 @@ func ValidateData(c *gin.Context, data any) bool{
 }
 	
 
-func CheckUserExistence(ctx context.Context, c *gin.Context, user models.User) bool {
+func CheckUserExistence(c *gin.Context, user models.User) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
 	//if call init function be careful about priority of compiler (global var -> init -> main) 
 	userCollection := db.GetMongoClient().CreateCollection(types.UserCollectionName)
 	count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
@@ -62,7 +64,9 @@ func CheckUserExistence(ctx context.Context, c *gin.Context, user models.User) b
 }
 
 
-func UpdateUserDataToMongo (ctx context.Context, c *gin.Context, user models.User) bool {
+func UpdateUserDataToMongo (c *gin.Context, user models.User) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
 	userCollection := db.GetMongoClient().CreateCollection(types.UserCollectionName)
 	hashPassword := password.CreateHashPassword(*user.Password)
 	token, refreshtoken := token.TokenGenerator(user)

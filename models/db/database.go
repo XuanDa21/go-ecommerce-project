@@ -9,8 +9,10 @@ import (
 	"sync"
 	"time"
 
+	models "ecommerce/models/data"
 	types "ecommerce/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -56,7 +58,7 @@ func GetMongoClient() *MongoDB {
 		if err != nil {
 			log.Println("failed to connect to mongodb")
 		}
-		
+
 		mongoDB = &MongoDB{
 			mongoClient: client,
 			config:      mongoConfig,
@@ -75,5 +77,19 @@ func (c MongoDB) CreateCollection(collectionName string) *mongo.Collection {
 	return collection
 }
 
+
+// func (c MongoDB) SearchByEmail(ctx context.Context, user models.User) (foundUser *models.User, err error) {
+// 	userCollection := c.CreateCollection(types.UserCollectionName)
+// 	err = userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+// 	return foundUser, err
+// }
+
+func (c MongoDB) SearchUserByField(value any, field string) (result models.User, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	collection := c.CreateCollection(types.UserCollectionName)
+	err = collection.FindOne(ctx, bson.M{field: value}).Decode(&result)
+	return result, err
+}
 
 

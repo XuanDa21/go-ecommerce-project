@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"fmt"
 	// "fmt"
 	"log"
 	"time"
@@ -44,11 +45,13 @@ func TokenGenerator(user models.User) (token string, refreshToken string) {
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(types.SECRET_KEY))
 	if err != nil {
 		log.Println(err.Error())
+		fmt.Println("err 3")
 		return 
 	}
 
 	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims).SignedString([]byte(types.SECRET_KEY))
 	if err != nil {
+		fmt.Println("err 1")
 		log.Println(err.Error())
 		return
 	}
@@ -83,7 +86,9 @@ func ValidateToken(tokenString string) (claims *MyCustomClaims, msg string) {
 }
 
 
-func UpdateAllTokens(ctx context.Context, token string, freshToken string, userID string) bool {
+func UpdateAllTokens(token string, freshToken string, userID string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
 	userCollection := db.GetMongoClient().CreateCollection(types.UserCollectionName)
 	var updateobj primitive.D
 	updateTime := time.Now().Local()
@@ -98,7 +103,6 @@ func UpdateAllTokens(ctx context.Context, token string, freshToken string, userI
 	_, err := userCollection.UpdateOne(ctx, filter, bson.D {
 		{Key: "$set", Value: updateobj},
 	})
-
 	if err != nil {
 		log.Println(err.Error())
 		return false
