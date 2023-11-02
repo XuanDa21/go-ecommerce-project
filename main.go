@@ -21,11 +21,11 @@ func main() {
 
 	router := gin.Default()
 	routes.SetupRoutes(router)
-
+	
 	port := ":5000"
 	err := router.Run(port)
 	if err != nil {
-		log.Println("cannot start server: %s", err)
+		log.Println("Cannot start server")
 		log.Fatal(err)
 	}
 }

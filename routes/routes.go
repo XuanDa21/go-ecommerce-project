@@ -3,13 +3,14 @@ package routes
 import (
 	// controllers "ecommerce/controllers"
 	"ecommerce/controllers"
-	// "fmt"
+	authentication "ecommerce/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
-// setup group of user routers
+
 func SetupRoutes(route *gin.Engine) {
+
 	//apis for user
 	userGroupRouter := route.Group("/user")
 	userGroupRouter.POST("/signup", controllers.SignupHandeler)
@@ -19,7 +20,11 @@ func SetupRoutes(route *gin.Engine) {
 
 	//apis for admin
 	adminGroupRouter := route.Group("/admin")
-	adminGroupRouter.POST("/addproduction", controllers.ProductViewerAdminHandeler)
+	adminGroupRouter.POST("/addproduction", controllers.AddProductByAdminHandeler)
+	
+	//handle authentication middleware before running any handle after to keep security
+	route.Use(authentication.Authentication)
+	
 
 	//apis for cart 
 	//TODO: create more apis for cart

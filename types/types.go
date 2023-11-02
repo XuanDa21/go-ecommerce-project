@@ -6,4 +6,5 @@ const (
 	DBName   = "ecommerce"
 	UserCollectionName = "Users"
 	ProCollectionName = "Products"
+	SECRET_KEY = "FALLING IN LOVE WITH LAZY"
 )

@@ -28,15 +28,17 @@ type mongoConfig struct {
 
 type MongoDB struct {
 	mongoClient *mongo.Client
-	config      mongoConfig
+	config      *mongoConfig
 }
 
-func getMongoConfig() mongoConfig {
-	return mongoConfig{
+
+func getMongoConfig() *mongoConfig {
+	return &mongoConfig{
 		mongoUrl: types.MongoUrl,
 		dbName:   types.DBName,
 	}
 }
+
 
 func GetMongoClient() *MongoDB {
 	initOnce.Do(func() {
@@ -54,8 +56,7 @@ func GetMongoClient() *MongoDB {
 		if err != nil {
 			log.Println("failed to connect to mongodb")
 		}
-		log.Println("Successfully Connected to the mongodb")
-
+		
 		mongoDB = &MongoDB{
 			mongoClient: client,
 			config:      mongoConfig,
@@ -65,12 +66,12 @@ func GetMongoClient() *MongoDB {
 	return mongoDB
 }
 
+
 func (c MongoDB) CreateCollection(collectionName string) *mongo.Collection {
 	collection := c.mongoClient.Database(types.DBName).Collection(collectionName)
 	if collection == nil {
 		log.Println("Failed to create collection")
 	}
-	log.Println("Successfully created collection")
 	return collection
 }
 
