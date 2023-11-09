@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	models "ecommerce/models/data"
@@ -69,9 +70,6 @@ func LoginHandeler(c *gin.Context) {
 
 }
 
-func SearchProductHandeler(c *gin.Context) {
-	c.Status(http.StatusOK)
-}
 
 func ProductViewHandler(c *gin.Context) {
 	result := services.ShowAllProducts(c) 
@@ -79,5 +77,16 @@ func ProductViewHandler(c *gin.Context) {
 }
 
 func SearchProductByQueryHandeler(c *gin.Context) {
-	c.Status(http.StatusOK)
+	productName := c.Query("name")
+	if productName == "" {
+		log.Println("Missed name of product")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Missed name of product"})
+		return
+	}
+	product, err := db.GetMongoClient().SearchProductByFiled(productName, "product_name")
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+	c.JSON(http.StatusOK, product)
 }

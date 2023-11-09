@@ -21,7 +21,6 @@ func AddProductByAdminHandeler(c *gin.Context) {
 	}
 
 	//TODO: CHECK PRODUCT IS EXIST
-
 	isUpdateProduct := services.UpdateProDataToMongo(c, product)
 
 	if isUpdateProduct {

@@ -86,3 +86,11 @@ func (c MongoDB) SearchUserByField(value any, field string) (result models.User,
 }
 
 
+func (c MongoDB) SearchProductByFiled(value any, field string) (result models.Product, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	collection := c.CreateCollection(types.ProCollectionName)
+	err = collection.FindOne(ctx, bson.M{field: value}).Decode(&result)
+	return result, err
+}
+
