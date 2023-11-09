@@ -15,7 +15,7 @@ func SetupRoutes(route *gin.Engine) {
 	userGroupRouter := route.Group("/user")
 	userGroupRouter.POST("/signup", controllers.SignupHandeler)
 	userGroupRouter.POST("/login", controllers.LoginHandeler)
-	userGroupRouter.GET("/productview", controllers.SearchProductHandeler)
+	userGroupRouter.GET("/productview", controllers.ProductViewHandler)
 	userGroupRouter.GET("/search", controllers.SearchProductByQueryHandeler)
 
 	//apis for admin

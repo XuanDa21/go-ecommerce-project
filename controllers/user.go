@@ -6,9 +6,8 @@ import (
 	models "ecommerce/models/data"
 	db "ecommerce/models/db"
 	services "ecommerce/services"
-	token "ecommerce/services/token"
 	password "ecommerce/services/password"
-
+	token "ecommerce/services/token"
 
 	"github.com/gin-gonic/gin"
 )
@@ -72,6 +71,11 @@ func LoginHandeler(c *gin.Context) {
 
 func SearchProductHandeler(c *gin.Context) {
 	c.Status(http.StatusOK)
+}
+
+func ProductViewHandler(c *gin.Context) {
+	result := services.ShowAllProducts(c) 
+	c.JSON(http.StatusOK, result)
 }
 
 func SearchProductByQueryHandeler(c *gin.Context) {

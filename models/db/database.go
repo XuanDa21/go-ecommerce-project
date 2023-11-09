@@ -58,7 +58,6 @@ func GetMongoClient() *MongoDB {
 		if err != nil {
 			log.Println("failed to connect to mongodb")
 		}
-
 		mongoDB = &MongoDB{
 			mongoClient: client,
 			config:      mongoConfig,
@@ -77,12 +76,6 @@ func (c MongoDB) CreateCollection(collectionName string) *mongo.Collection {
 	return collection
 }
 
-
-// func (c MongoDB) SearchByEmail(ctx context.Context, user models.User) (foundUser *models.User, err error) {
-// 	userCollection := c.CreateCollection(types.UserCollectionName)
-// 	err = userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
-// 	return foundUser, err
-// }
 
 func (c MongoDB) SearchUserByField(value any, field string) (result models.User, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)

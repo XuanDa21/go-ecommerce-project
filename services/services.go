@@ -12,9 +12,9 @@ import (
 
 	models "ecommerce/models/data"
 	db "ecommerce/models/db"
-	types "ecommerce/types"
-	token "ecommerce/services/token"
 	password "ecommerce/services/password"
+	token "ecommerce/services/token"
+	types "ecommerce/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -88,4 +88,49 @@ func UpdateUserDataToMongo (c *gin.Context, user models.User) bool {
 		return false
 	}
 	return true
+}
+
+func UpdateProDataToMongo (c* gin.Context, product models.Product) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	productCollection := db.GetMongoClient().CreateCollection(types.ProCollectionName)
+	product.Product_ID = primitive.NewObjectID()
+	
+	_, err := productCollection.InsertOne(ctx, product)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Not Created"})
+		return false
+	}
+
+	defer cancel()
+	c.JSON(http.StatusOK, "Successfully added our Product Admin!!")
+	return true
+}
+
+
+func ShowAllProducts (c* gin.Context) []models.Product {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	productCollection := db.GetMongoClient().CreateCollection(types.ProCollectionName)
+	var productlist []models.Product
+	cursor, err := productCollection.Find(context.TODO(), bson.D{})
+	if err != nil {
+        log.Println("Finding all documents ERROR:", err)
+        defer cursor.Close(ctx)
+    }
+
+	err = cursor.All(ctx, &productlist)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.Err(); err != nil {
+		log.Println(err)
+		c.JSON(400, "invalid")
+	}
+	defer cancel()
+
+	return productlist
 }
