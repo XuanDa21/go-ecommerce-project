@@ -80,13 +80,15 @@ func SearchProductByQueryHandeler(c *gin.Context) {
 	productName := c.Query("name")
 	if productName == "" {
 		log.Println("Missed name of product")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Missed name of product"})
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusNotFound, gin.H{"error": "Missed name of product"})
+		c.Abort()
 		return
 	}
-	product, err := db.GetMongoClient().SearchProductByFiled(productName, "product_name")
+	products, _, err := db.GetMongoClient().SearchProductByFiled(productName, "product_name", true)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, products)
 }

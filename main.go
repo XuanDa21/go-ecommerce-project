@@ -2,15 +2,8 @@ package main
 
 import (
 	"log"
-	// "os"
-	// "fmt"
-
-	// db "ecommerce/models/db"
+	
 	routes "ecommerce/routes"
-
-	// controllers "ecommerce/controllers"
-	// middlewares "ecommerce/middlewares"
-	// models "ecommerce/models"
 
 	"github.com/gin-gonic/gin"
 )

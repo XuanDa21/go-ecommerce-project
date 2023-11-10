@@ -5,16 +5,15 @@ package services
 // This helps keep controllers clean and focused.
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
+	"context"
 
 	models "ecommerce/models/data"
 	db "ecommerce/models/db"
 	password "ecommerce/services/password"
 	token "ecommerce/services/token"
-	types "ecommerce/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -38,7 +37,7 @@ func CheckUserExistence(c *gin.Context, user models.User) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 	//if call init function be careful about priority of compiler (global var -> init -> main) 
-	userCollection := db.GetMongoClient().CreateCollection(types.UserCollectionName)
+	userCollection := db.GetMongoClient().GetCollection().UserCollection
 	count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 	if err != nil {
 		log.Panic(err)
@@ -67,7 +66,7 @@ func CheckUserExistence(c *gin.Context, user models.User) bool {
 func UpdateUserDataToMongo (c *gin.Context, user models.User) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-	userCollection := db.GetMongoClient().CreateCollection(types.UserCollectionName)
+	userCollection := db.GetMongoClient().GetCollection().UserCollection
 	hashPassword := password.CreateHashPassword(*user.Password)
 	token, refreshtoken := token.TokenGenerator(user)
 	
@@ -75,6 +74,7 @@ func UpdateUserDataToMongo (c *gin.Context, user models.User) bool {
 	user.Created_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	user.ID = primitive.NewObjectID()
+	// Hex returns the hex encoding of the ObjectID as a string
 	user.User_ID = user.ID.Hex()
 	user.Token = &token
 	user.Refresh_Token = &refreshtoken
@@ -93,7 +93,7 @@ func UpdateUserDataToMongo (c *gin.Context, user models.User) bool {
 func UpdateProDataToMongo (c* gin.Context, product models.Product) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-	productCollection := db.GetMongoClient().CreateCollection(types.ProCollectionName)
+	productCollection := db.GetMongoClient().GetCollection().ProductCollection
 	product.Product_ID = primitive.NewObjectID()
 	
 	_, err := productCollection.InsertOne(ctx, product)
@@ -111,7 +111,7 @@ func UpdateProDataToMongo (c* gin.Context, product models.Product) bool {
 func ShowAllProducts (c* gin.Context) []models.Product {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-	productCollection := db.GetMongoClient().CreateCollection(types.ProCollectionName)
+	productCollection := db.GetMongoClient().GetCollection().ProductCollection
 	var productlist []models.Product
 	cursor, err := productCollection.Find(context.TODO(), bson.D{})
 	if err != nil {
@@ -133,4 +133,59 @@ func ShowAllProducts (c* gin.Context) []models.Product {
 	defer cancel()
 
 	return productlist
+}
+
+func AddProductToCart(userID string, productId string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	pId, err := primitive.ObjectIDFromHex(productId)
+	if err != nil {
+		log.Println(err.Error())
+	} 
+	products, _, err := db.GetMongoClient().SearchProductByFiled(pId, "_id", true)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+
+	uId, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+
+	filter := bson.D{primitive.E{Key: "_id", Value: uId}}
+	update := bson.D{{Key: "$push", Value: bson.D{primitive.E{Key: "usercart", Value: bson.D{{Key: "$each", Value: products}}}}}}
+	_, err = db.GetMongoClient().GetCollection().UserCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+
+	return true
+}
+
+func DeleteProductFromCart(userId string, productId string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	uId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+	pId, err := primitive.ObjectIDFromHex(productId)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	} 
+
+	filter := bson.D{primitive.E{Key: "_id", Value: uId}}
+	update := bson.M{"$pull": bson.M{"usercart": bson.M{"_id": pId}}}
+	_, err = db.GetMongoClient().GetCollection().UserCollection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+	return true
 }

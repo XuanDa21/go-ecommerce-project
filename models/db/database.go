@@ -33,6 +33,10 @@ type MongoDB struct {
 	config      *mongoConfig
 }
 
+type Collection struct {
+	UserCollection *mongo.Collection
+	ProductCollection *mongo.Collection
+}
 
 func getMongoConfig() *mongoConfig {
 	return &mongoConfig{
@@ -52,7 +56,6 @@ func GetMongoClient() *MongoDB {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		//check if a MongoDB server has been found and connected to
 		err = client.Ping(context.TODO(), nil)
 		if err != nil {
@@ -76,21 +79,55 @@ func (c MongoDB) CreateCollection(collectionName string) *mongo.Collection {
 	return collection
 }
 
+func (c MongoDB) GetCollection() (Collection) {
+	collection := Collection {
+		UserCollection:	c.CreateCollection(types.UserCollectionName),
+		ProductCollection: c.CreateCollection(types.ProCollectionName),
+	}
+	return collection
+}
 
+// TODO: implement for multiple search users
 func (c MongoDB) SearchUserByField(value any, field string) (result models.User, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-	collection := c.CreateCollection(types.UserCollectionName)
+	collection := c.GetCollection().UserCollection
 	err = collection.FindOne(ctx, bson.M{field: value}).Decode(&result)
 	return result, err
 }
 
 
-func (c MongoDB) SearchProductByFiled(value any, field string) (result models.Product, err error) {
+func (c MongoDB) SearchProductByFiled(value any, field string, isMultipleSearch bool) (results []models.Product, result models.Product, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-	collection := c.CreateCollection(types.ProCollectionName)
-	err = collection.FindOne(ctx, bson.M{field: value}).Decode(&result)
-	return result, err
+	collection := c.GetCollection().ProductCollection
+	var filter any
+	
+	if field != "_id" {
+		//Search Product by regex function
+		filter = bson.M{field: bson.M{"$regex": value}}
+	} else {
+		filter = bson.M{field: value}
+	}
+
+	if isMultipleSearch {
+		cursor, err := collection.Find(context.TODO(), filter)
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		err = cursor.All(ctx, &results)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	} else {
+		err = collection.FindOne(ctx, filter).Decode(&result)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	return results, result, err
 }
+
 
