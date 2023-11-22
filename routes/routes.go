@@ -1,9 +1,9 @@
 package routes
 
 import (
-	// controllers "ecommerce/controllers"
 	"ecommerce/controllers"
 	authentication "ecommerce/middlewares"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,8 +11,11 @@ import (
 
 func SetupRoutes(route *gin.Engine) {
 	
-	route.SetTrustedProxies(nil)
-
+	err := route.SetTrustedProxies(nil)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	
 	//apis for user
 	userGroupRouter := route.Group("/user")
 	userGroupRouter.POST("/signup", controllers.SignupHandeler)
