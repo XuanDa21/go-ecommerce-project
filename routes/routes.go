@@ -27,7 +27,6 @@ func SetupRoutes(route *gin.Engine) {
 	adminGroupRouter := route.Group("/admin")
 	adminGroupRouter.POST("/addproduction", controllers.AddProductByAdminHandeler)
 	
-
 	//handle authentication middleware before running any handle after to keep security
 	route.Use(authentication.Authentication)
 	
