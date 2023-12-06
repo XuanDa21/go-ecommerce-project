@@ -19,7 +19,7 @@ pipeline {
         }
    
 
-        stage('Build and Publish to Nexus') {
+     //   stage('Build and Publish to Nexus') {
             steps {
                 script {
                     def nexusUrl = '192.168.86.129:8081'
