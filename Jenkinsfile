@@ -17,7 +17,8 @@ pipeline {
                 sh 'go version'
             }
         }
-   
+
+        //
 
         stage('Build and Publish to Nexus') {
             steps {
