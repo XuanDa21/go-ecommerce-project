@@ -1,36 +1,51 @@
 pipeline {
     agent any
+    
+    tools {
+        go '1.21.5'
+        maven '3.9.6'
+    }
 
-    // environment {
-    //     GOPATH = '/path/to/gopath'  // Set your GOPATH here
-    // }
+    environment {
+        MYAPP_PATH = '' 
+    }
+
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/XuanDa21/go-ecommerce-project.git']]])
             }
         }
 
-        stage('Build') {
+        stage('Preparation') {
+            steps {
+                sh 'go version'
+            }
+        }
+   
+
+        stage('Build and Publish to Nexus') {
             steps {
                 script {
+                    def nexusUrl = '192.168.86.129:8081'
+                    def artifactName = 'ecommerce-app'
+
                     sh 'go build -o myapp'
-                }
-            }
-        }
-
-        stage('Publish to Nexus') {
-            steps {
-                script {
-                    def nexusUrl = 'http://192.168.186.200:8081/repository/test-golang'
-                    def nexusUser = 'admin'
-                    def nexusPassword = '1'
-                    def artifactName = 'test-golang'
-
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-                        sh "curl -v -u $NEXUS_USERNAME:$NEXUS_PASSWORD --upload-file ${artifactName} ${nexusUrl}/${artifactName}"
-                    }
+                    def artifactPath = 'myapp'
+                    
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: nexusUrl,
+                        version: '1.0',
+                        repository: 'ecommerce-app',
+                        credentialsId: 'nexus-credentials',
+                        packaging: 'exe',
+                        artifacts: [
+                            [artifactId: 'ecommerce-app', file: artifactPath]
+                        ]
+                    )
                 }
             }
         }
