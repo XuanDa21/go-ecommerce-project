@@ -6,11 +6,6 @@ pipeline {
         maven '3.9.6'
     }
 
-    environment {
-        MYAPP_PATH = '' 
-    }
-
-
     stages {
         stage('Checkout') {
             steps {
