@@ -11,6 +11,7 @@ pipeline {
                 checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/XuanDa21/go-ecommerce-project.git']]])
             }
         }
+        // 
 
         stage('Preparation') {
             steps {
