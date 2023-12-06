@@ -5,7 +5,6 @@ pipeline {
         go '1.21.5'
         maven '3.9.6'
     }
-// 
     stages {
         stage('Checkout') {
             steps {
