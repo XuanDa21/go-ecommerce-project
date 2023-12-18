@@ -5,17 +5,13 @@ pipeline {
         go '1.21.5'
         maven '3.9.6'
     }
-<<<<<<< HEAD
-=======
     
     environment {
         DOCKER_IMAGE = 'myapp:latest'
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
         registryCredentials =  'nexus-credentials'
     }
-
-
->>>>>>> ef19f45 (update Jenkinsfile)
+    
     stages {
         stage('Checkout') {
             steps {
