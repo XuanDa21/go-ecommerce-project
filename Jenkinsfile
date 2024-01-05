@@ -88,7 +88,7 @@ pipeline {
                         nexusVersion: 'nexus3',
                         protocol: 'http',
                         nexusUrl: nexusUrl,
-                        version: '1.0',
+                        version: env.BUILD_NUMBER,
                         repository: 'ecommerce-app',
                         credentialsId: 'nexus-credentials',
                         packaging: 'exe',
