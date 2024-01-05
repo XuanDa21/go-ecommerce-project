@@ -53,26 +53,26 @@ pipeline {
             }
         }
         
-        stage('Login to Nexus') {
-            steps {
-                script {
-                    sh "echo 1 | docker login -u admin --password-stdin  http://192.168.86.129:8123"
-                }
-            }
-        }
+        // stage('Login to Nexus') {
+        //     steps {
+        //         script {
+        //             sh "echo 1 | docker login -u admin --password-stdin  http://192.168.86.129:8123"
+        //         }
+        //     }
+        // }
         
-        stage('Push an image to Nexus') {
-            steps {
-                script {
-                    // Tag the Docker image for Nexus
-                    sh " docker tag datrinh/ecommerce  192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
+        // stage('Push an image to Nexus') {
+        //     steps {
+        //         script {
+        //             // Tag the Docker image for Nexus
+        //             sh " docker tag datrinh/ecommerce  192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
 
-                    // Push the Docker image to Nexus
-                    sh " docker push 192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
-                    sh " docker push 192.168.86.129:8123/datrinh/ecommerce:latest"
-                }
-            }
-        }
+        //             // Push the Docker image to Nexus
+        //             sh " docker push 192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
+        //             sh " docker push 192.168.86.129:8123/datrinh/ecommerce:latest"
+        //         }
+        //     }
+        // }
         
         stage('Publish artifact to Nexus') {
             steps {
