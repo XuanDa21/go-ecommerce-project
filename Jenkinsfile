@@ -9,10 +9,17 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'myapp:latest'
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        registryCredentials =  'nexus-credentials'
+        registryCredentials =  'login-nexus-test'
+        NEXUS_REGISTRY = 'http://192.168.86.129:8123'
     }
     
     stages {
+        stage("Env Variables") {
+            steps {
+                sh "printenv"
+            }
+        }
+        
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/XuanDa21/go-ecommerce-project.git']]])
@@ -33,12 +40,14 @@ pipeline {
             }
         }
         
+        
         stage('Build an image and push it to dockerhub') {
             steps {
                 script {
-                    docker.build('datrinh/ecommerce:latest')
+                    docker.build("datrinh/ecommerce:${env.BUILD_NUMBER}")
                     
-                    sh 'docker push datrinh/ecommerce:latest'
+                    sh "docker push datrinh/ecommerce:${env.BUILD_NUMBER}"
+                    sh "docker push datrinh/ecommerce:latest"
                     
                 }   
             }
@@ -47,10 +56,7 @@ pipeline {
         stage('Login to Nexus') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: registryCredentials, passwordVariable: 'NEXUS_PASSWORD', usernameVariable: 'NEXUS_USERNAME')]) {
-                        // Log in to Nexus Docker registry
-                        sh "docker login -u $NEXUS_USERNAME -p $NEXUS_PASSWORD http://192.168.86.129:8123"
-                    }
+                    sh "echo 1 | docker login -u admin --password-stdin  http://192.168.86.129:8123"
                 }
             }
         }
@@ -58,11 +64,11 @@ pipeline {
         stage('Push an image to Nexus') {
             steps {
                 script {
-                    
                     // Tag the Docker image for Nexus
-                    sh " docker tag datrinh/ecommerce  192.168.86.129:8123/datrinh/ecommerce:latest"
+                    sh " docker tag datrinh/ecommerce  192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
 
                     // Push the Docker image to Nexus
+                    sh " docker push 192.168.86.129:8123/datrinh/ecommerce:${env.BUILD_NUMBER}"
                     sh " docker push 192.168.86.129:8123/datrinh/ecommerce:latest"
                 }
             }
@@ -95,3 +101,4 @@ pipeline {
         }
     }
 }
+
